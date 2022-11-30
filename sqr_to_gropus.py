@@ -102,8 +102,97 @@ for claimeven in claimevens:
             group_to_solution[solution["groups"]]=set()
         group_to_solution[solution["groups"]].add(solution)
     
-        
 
+#BaseInverse
+
+def is_true_threat(threat):
+    """Checks if the threat coordinates are true.
+    
+    Args:
+        threat: a tuple of 2 tuples representing the threat coordinates of the start and end of the threat.
+    """
+    threat_start = threat[0]
+    threat_end = threat[1]
+
+    # Filter out squares further than 3 positions apart.
+    row_diff = threat_start[0] - threat_end[0]
+    if abs(row_diff) > 3:
+        return False
+    col_diff = threat_start[1] - threat_end[1]
+    if abs(col_diff) > 3:
+        return False
+    
+    # If the two squares are in the same row or column, it is possible for them to be connected.
+    # The two squares can be connected diagonally only if row_diff and col_diff are the same.
+    if row_diff == 0 or col_diff == 0:
+        return True
+    if abs(row_diff) == abs(col_diff):
+        return True
+    return False
+
+def possible_actions(board):
+    """Returns a list of all directly playable actions (row, col) on a board."""
+    actions = []
+    for col in range(len(board[0])):
+        for row in range(len(board)):
+            if board[row][col] == '.':
+                actions.append((row,col))
+                break
+    # playable_cols = [x[1] for x in actions]
+    return actions
+
+
+
+def find_baseinverses(board):
+    """Finds all the baseinverses on a board.
+
+    Required: 2 directly playable squares.
+    
+    Returns:
+        List with all the tuples that contain both squares
+    """
+    baseinverses = []
+    playable_actions = possible_actions(board)
+
+    # Try all different combinations of directly playable squares.
+    for square1 in playable_actions:
+        for square2 in playable_actions:
+            if square1 != square2 and is_true_threat((square1, square2)):
+                # Note threats are only checked if coords are viable.
+                # Checking whether the threat is real with current board state could benefit the algorithm.
+                inverted_baseinverse = (square2, square1)
+                if inverted_baseinverse not in baseinverses: # Avoid duplicates
+                    baseinverses.append((square1, square2))
+
+    return baseinverses
+
+baseinverses=find_baseinverses(initial_board)
+
+def find_baseinverse_groups(baseinverses,square_to_groups):
+    """Finds all the baseinverses on a board.
+
+    Required: 2 directly playable squares.
+    
+    Returns:
+        List with all the tuples that contain both squares
+    """
+    for baseinverse in baseinverses:
+        square1=baseinverse[0]
+        square2=baseinverse[1]
+        groups1, groups2 = square_to_groups[square1], square_to_groups[square2]
+        groups_intersection = groups1.intersection(groups2)
+        if groups_intersection:
+            squares= frozenset([square1, square2])
+            return{"squares":squares,"groups":groups_intersection,"rule":"baseinverse"}
+
+
+for baseinverse in baseinverses:
+    solution=find_baseinverse_groups(baseinverse,square_to_groups)
+    if solution:
+        solutions.add(solution)
+        if solution["groups"] not in group_to_solution:
+            group_to_solution[solution["groups"]]=set()
+        group_to_solution[solution["groups"]].add(solution) #add solution to group_to_solution
 
 
 
