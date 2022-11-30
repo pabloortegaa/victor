@@ -196,5 +196,64 @@ for baseinverse in baseinverses:
 
 
 
+#Vertical
+def find_verticals(board, player):
+    """Finds all the verticals on a board. Function that replaces the claimeven when necessary.
 
-            
+    Required: 2 squares directly above each other. Both squares must be empty. The upper square must be odd.
+    
+    Returns:
+        List with all the verticals.
+        Vertical represented with (row, col) of the lower (even) square.
+    """
+    verticals = []
+    for row in range(1, len(board)-1, 2): # Steps of 2 to reach only odd rows
+        for col in range(len(board[0])):
+            if board[row][col] == '.' or board[row][col] == player:
+                verticals.append((row, col))
+    return verticals
+
+verticals=find_verticals(initial_board,"X")
+
+def from_vertical(vertical,square_to_groups):
+    rule="vertical"
+    upper_groups=vertical[0] # vertical.upper
+    lower_groups=vertical[1] # vertical.lower
+    groups_intersection = upper_groups.intersection(lower_groups)
+    if groups_intersection:
+        return{"squares":vertical,"groups":groups_intersection,"rule":rule}
+
+for vertical in verticals:
+    solution=from_vertical(vertical,square_to_groups)
+    if solution:
+        solutions.add(solution)
+        if solution["groups"] not in group_to_solution:
+            group_to_solution[solution["groups"]]=set()
+        group_to_solution[solution["groups"]].add(solution)
+
+#Aftereven
+def find_after_evens(board, player="O"):
+    """Finds all the after evens on a board.
+    The controller of the Zugzwang (black) will always play claimeven to reach the et even group.
+    For this function to work, the game should comply with it's basic rules: first player must be "X" (white).
+
+    Required: 
+        A group which can be completed by the controller of the Zugzwang, using only the even
+        squares of a set of Claimevens. This group is called the Aftereven group. 
+        The columns in which the empty squares lie are called the Aftereven columns.
+    
+    Returns:
+        A list of all afterevens. Each afterevne is represented by a list of tuples with coords (row, col) for the 4 squares.
+    """
+    afterevens = []
+    for row in range(1, len(board), 2):
+        for col in range(len(board[0])-3):
+            if ((board[row][col] == '.' or board[row][col] == player) 
+            and (board[row][col+1] == '.' or board[row][col+1] == player) 
+            and (board[row][col+2] == '.' or board[row][col+2] == player) 
+            and (board[row][col+3] == '.' or board[row][col+3] == player)):
+                afterevens.append([(row, col), (row, col+1), (row, col+2), (row, col+3)])
+
+    return afterevens
+
+afterevens=find_after_evens(initial_board,"X")
